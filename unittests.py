@@ -65,6 +65,22 @@ class TestRelu(unittest.TestCase):
         # generate the `assembly/TestRelu_test_simple.s` file and run it through venus
         t.execute()
 
+    def test_relu_large(self):
+        # load the test for relu.s
+        t = AssemblyTest(self, "relu.s")
+        # create an array in the data section
+        array0 = t.array([3333, -2222, 31111, -4000000, 500, -6110000000, 70000000, -80000888, 9999999])
+        # load address of `array0` into register a0
+        t.input_array("a0", array0)
+        # set a1 to the length of our array
+        t.input_scalar("a1", len(array0))
+        # call the `relu` function
+        t.call("relu")
+        # check that the array0 was changed appropriately
+        t.check_array(array0, [3333, 0, 31111, 0, 500, 0, 70000000, 0, 9999999])
+        # generate the `assembly/TestRelu_test_simple.s` file and run it through venus
+        t.execute()
+
     def test_relu_length_1(self):
         # load the test for relu.s
         t = AssemblyTest(self, "relu.s")
@@ -104,6 +120,66 @@ class TestArgmax(unittest.TestCase):
         t.call("argmax")
         # check that the register a0 contains the correct output
         t.check_scalar("a0", 2)
+        # generate the `assembly/TestArgmax_test_simple.s` file and run it through venus
+        t.execute()
+
+    def test_argmax_first(self):
+        t = AssemblyTest(self, "argmax.s")
+        # create an array in the data section
+        array0 = t.array([6999999, -42, 432, 7, -5, 6, 5, -114, 111])
+        # load address of the array into register a0
+        t.input_array("a0", array0)
+        # set a1 to the length of the array
+        t.input_scalar("a1", len(array0))
+        # call the `argmax` function
+        t.call("argmax")
+        # check that the register a0 contains the correct output
+        t.check_scalar("a0", 0)
+        # generate the `assembly/TestArgmax_test_simple.s` file and run it through venus
+        t.execute()
+
+    def test_argmax_last(self):
+        t = AssemblyTest(self, "argmax.s")
+        # create an array in the data section
+        array0 = t.array([3, -42, 432, 7, -5, 6, 5, -114, 6969696])
+        # load address of the array into register a0
+        t.input_array("a0", array0)
+        # set a1 to the length of the array
+        t.input_scalar("a1", len(array0))
+        # call the `argmax` function
+        t.call("argmax")
+        # check that the register a0 contains the correct output
+        t.check_scalar("a0", 8)
+        # generate the `assembly/TestArgmax_test_simple.s` file and run it through venus
+        t.execute()
+
+    def test_argmax_tied(self):
+        t = AssemblyTest(self, "argmax.s")
+        # create an array in the data section
+        array0 = t.array([3, -42, 3, 7, 7, 7, 5, -114, 1])
+        # load address of the array into register a0
+        t.input_array("a0", array0)
+        # set a1 to the length of the array
+        t.input_scalar("a1", len(array0))
+        # call the `argmax` function
+        t.call("argmax")
+        # check that the register a0 contains the correct output
+        t.check_scalar("a0", 3)
+        # generate the `assembly/TestArgmax_test_simple.s` file and run it through venus
+        t.execute()
+
+    def test_argmax_all_negatives(self):
+        t = AssemblyTest(self, "argmax.s")
+        # create an array in the data section
+        array0 = t.array([-6999999, -42, -432, -7, -5, -6, -4, -114, -111])
+        # load address of the array into register a0
+        t.input_array("a0", array0)
+        # set a1 to the length of the array
+        t.input_scalar("a1", len(array0))
+        # call the `argmax` function
+        t.call("argmax")
+        # check that the register a0 contains the correct output
+        t.check_scalar("a0", 6)
         # generate the `assembly/TestArgmax_test_simple.s` file and run it through venus
         t.execute()
 
