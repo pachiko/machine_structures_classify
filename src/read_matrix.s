@@ -27,13 +27,11 @@
 # ==============================================================================
 read_matrix:
     # PROLOGUE
-    addi sp, sp, -28
-    sw s0, 0(sp) # row*
-    sw s1, 4(sp) # col*
+    addi sp, sp, -16
+    sw s0, 0(sp) # row*, then bytes
+    sw s1, 4(sp) # col*, then array
     sw s2, 8(sp) # file*
-    sw s3, 12(sp) # array*
-    sw s4, 16(sp) # bytes in array
-    sw ra, 20(sp)
+    sw ra, 12(sp)
     
     # STORE RETURN PTR
     add s0, x0, a1 # return row*
@@ -77,19 +75,19 @@ read_matrix:
     lw t1, 0(s1)
     
     # ALLOCATE ARRAY
-    mul s4, t0, t1 # numElems
-    slli s4, s4, 2 # in bytes...
-    add a0, x0, s4
+    mul s0, t0, t1 # numElems
+    slli s0, s0, 2 # in bytes...
+    add a0, x0, s0
     jal malloc # allocate memory for fread
     jal check_malloc # check if a0 == 0
-    add s3, a0, x0 # store the array ptr
+    add s1, a0, x0 # store the array ptr
    
     # SETUP READ ARGS, READ MATRIX
     add a0, x0, s2
-    add a1, x0, s3
-    add a2, x0, s4
+    add a1, x0, s1
+    add a2, x0, s0
     jal fread # read the matrix
-    add a1, x0, s4
+    add a1, x0, s0
     jal check_file_read
          
     # CLOSE FILE
@@ -97,16 +95,14 @@ read_matrix:
     jal fclose
     jal check_file_close
     
-    add a0, x0, s3
+    add a0, x0, s1
     
     # EPILOGUE
     lw s0, 0(sp)
     lw s1, 4(sp)
     lw s2, 8(sp)
-    lw s3, 12(sp)
-    lw s4, 16(sp)
-    lw ra, 20(sp)
-    addi sp, sp, 28
+    lw ra, 12(sp)
+    addi sp, sp, 16
     
     jr ra
     

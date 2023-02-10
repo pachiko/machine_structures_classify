@@ -25,13 +25,12 @@
 # ==============================================================================
 write_matrix:
     # PROLOGUE
-    addi sp, sp, -24
+    addi sp, sp, -20
     sw s0, 0(sp) # FILE PATH/ DESCRIPTOR
     sw s1, 4(sp) # MATRIX
-    sw s2, 8(sp) # ROWS
-    sw s3, 12(sp) # COLS
-    sw s4, 16(sp) # MATRIX BYTES
-    sw ra, 20(sp)
+    sw s2, 8(sp) # ROWS, THEN TUPLE
+    sw s3, 12(sp) # COLS, then ELEMENTS
+    sw ra, 16(sp)
     
     # SAVE DATA
     add s0, a0, x0
@@ -49,15 +48,16 @@ write_matrix:
     addi a0, x0, 8
     jal malloc
     jal check_malloc
-    add s4, x0, a0 # save tuple
     
     # WRITE ROW COL TO MEM
-    sw s2, 0(s4)
-    sw s3, 4(s4)
+    sw s2, 0(a0)
+    sw s3, 4(a0)
+    mul s3, s2, s3 # elements
+    add s2, x0, a0 # save tuple
 
     # WRITE ROW COL TO FILE
     add a0, x0, s0 # file
-    add a1, x0, s4 # ptr to write
+    add a1, x0, s2 # ptr to write
     addi a2, x0, 2 # 2 elements
     addi a3, x0, 4 # 4 bytes each
     jal fwrite
@@ -65,17 +65,16 @@ write_matrix:
     jal check_file_write
     
     # FREE TUPLE
-    add a0, x0, s4
+    add a0, x0, s2
     jal free
     
     # WRITE MATRIX TO FILE
     add a0, x0, s0 # file
     add a1, x0, s1 # ptr to write
-    mul s4, s2, s3 # m x n elements
-    add a2, s4, x0
+    add a2, s3, x0 # m x n elements
     addi a3, x0, 4 # 4 bytes each
     jal fwrite
-    add a1, x0, s4 # check m x n elements
+    add a1, x0, s3 # check m x n elements
     jal check_file_write
     
     # CLOSE FILE
@@ -88,8 +87,7 @@ write_matrix:
     lw s1, 4(sp)
     lw s2, 8(sp)
     lw s3, 12(sp)
-    lw s4, 16(sp)
-    lw ra, 20(sp)
-    addi sp, sp, 24
+    lw ra, 16(sp)
+    addi sp, sp, 20
     
     jr ra
