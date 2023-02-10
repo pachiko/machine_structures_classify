@@ -1,4 +1,4 @@
-.globl check_size, check_stride, check_mat_dims, check_matmul_rc, check_malloc, check_file_open, check_file_close, check_file_read
+.globl check_size, check_stride, check_mat_dims, check_matmul_rc, check_malloc, check_file_open, check_file_close, check_file_read, check_file_write
 
 .text
 check_size:
@@ -49,6 +49,11 @@ check_file_close:
 check_file_read: # a0 == a1
     beq a0, a1, passed_check
     li a0 29
+    j exit
+
+check_file_write:
+    beq a0, a1, passed_check
+    li a0 30
     j exit
     
 passed_check:

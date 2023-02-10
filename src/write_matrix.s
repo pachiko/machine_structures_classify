@@ -1,3 +1,4 @@
+.import check.s
 .globl write_matrix
 
 .text
@@ -23,18 +24,72 @@
 #     this function terminates the program with error code 30
 # ==============================================================================
 write_matrix:
+    # PROLOGUE
+    addi sp, sp, -24
+    sw s0, 0(sp) # FILE PATH/ DESCRIPTOR
+    sw s1, 4(sp) # MATRIX
+    sw s2, 8(sp) # ROWS
+    sw s3, 12(sp) # COLS
+    sw s4, 16(sp) # MATRIX BYTES
+    sw ra, 20(sp)
+    
+    # SAVE DATA
+    add s0, a0, x0
+    add s1, a1, x0
+    add s2, a2, x0
+    add s3, a3, x0
+    
+    # OPEN FILE FOR WRITE
+    addi a1, x0, 1
+    jal fopen
+    add s0, a0, x0 # FILE DESCRIPTOR
+    jal check_file_open
+    
+    # MALLOC ROW COL TUPLE
+    addi a0, x0, 8
+    jal malloc
+    jal check_malloc
+    add s4, x0, a0 # save tuple
+    
+    # WRITE ROW COL TO MEM
+    sw s2, 0(s4)
+    sw s3, 4(s4)
 
-    # Prologue
-
-
-
-
-
-
-
-
-
-    # Epilogue
-
-
+    # WRITE ROW COL TO FILE
+    add a0, x0, s0 # file
+    add a1, x0, s4 # ptr to write
+    addi a2, x0, 2 # 2 elements
+    addi a3, x0, 4 # 4 bytes each
+    jal fwrite
+    addi a1, x0, 2 # check 2 elements
+    jal check_file_write
+    
+    # FREE TUPLE
+    add a0, x0, s4
+    jal free
+    
+    # WRITE MATRIX TO FILE
+    add a0, x0, s0 # file
+    add a1, x0, s1 # ptr to write
+    mul s4, s2, s3 # m x n elements
+    add a2, s4, x0
+    addi a3, x0, 4 # 4 bytes each
+    jal fwrite
+    add a1, x0, s4 # check m x n elements
+    jal check_file_write
+    
+    # CLOSE FILE
+    add a0, x0, s0 # file
+    jal fclose
+    jal check_file_close
+        
+    # EPILOGUE
+    lw s0, 0(sp)
+    lw s1, 4(sp)
+    lw s2, 8(sp)
+    lw s3, 12(sp)
+    lw s4, 16(sp)
+    lw ra, 20(sp)
+    addi sp, sp, 24
+    
     jr ra
